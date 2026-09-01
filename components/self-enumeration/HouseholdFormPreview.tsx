@@ -19,6 +19,9 @@ import { Select } from "@/components/ui/Select";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { STATE_SCHEDULES } from "@/data/scheduleData";
+import { HouseholdAIInput } from "@/components/self-enumeration/HouseholdAIInput";
+import { HouseholdReview } from "@/components/self-enumeration/HouseholdReview";
+import { HouseholdExtraction } from "@/types/census";
 
 interface HouseholdFormPreviewProps {
   currentStep: number;
@@ -51,6 +54,8 @@ export function HouseholdFormPreview({
   const [activeHint, setActiveHint] = React.useState<string>(
     "Census House Number is the official number assigned by municipal or village enumerators."
   );
+
+  const [extractedData, setExtractedData] = React.useState<HouseholdExtraction | null>(null);
 
   const handleInputChange = (
     field: string,
@@ -311,20 +316,16 @@ export function HouseholdFormPreview({
             </div>
           )}
 
-          {/* Steps 3, 4, 5 Simplified Previews */}
-          {currentStep >= 3 && (
+          {/* Step 3 Preview */}
+          {currentStep === 3 && (
             <div className="space-y-6 py-6 text-center">
               <div className="h-16 w-16 rounded-2xl bg-brand-navy-50 text-brand-navy-900 mx-auto flex items-center justify-center border border-brand-navy-100">
-                {currentStep === 3 && <Sparkles className="h-8 w-8 text-brand-saffron-500" />}
-                {currentStep === 4 && <Building className="h-8 w-8 text-blue-600" />}
-                {currentStep === 5 && <ShieldCheck className="h-8 w-8 text-emerald-600" />}
+                <Sparkles className="h-8 w-8 text-brand-saffron-500" />
               </div>
 
               <div className="max-w-md mx-auto space-y-2">
                 <h3 className="text-xl font-bold text-slate-900">
-                  {currentStep === 3 && "Step 3: Household Assets Preview"}
-                  {currentStep === 4 && "Step 4: Resident Count Roster"}
-                  {currentStep === 5 && "Step 5: Digital Acknowledgment"}
+                  Step 3: Household Assets Preview
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600">
                   This multi-step form preview demonstrates the simplified citizen workflow designed for Phase 1. Complete validation and encrypted submission will be integrated in Phase 2.
@@ -341,27 +342,112 @@ export function HouseholdFormPreview({
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Previous
                 </Button>
-                {currentStep < 5 ? (
-                  <Button
-                    type="button"
-                    variant="saffron"
-                    size="lg"
-                    onClick={() => onStepChange(currentStep + 1)}
-                  >
-                    Continue to Step {currentStep + 1}
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="green"
-                    size="lg"
-                    onClick={() => onStepChange(1)}
-                  >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Restart Preview
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="saffron"
+                  size="lg"
+                  onClick={() => onStepChange(currentStep + 1)}
+                >
+                  Continue
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4 Preview */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              {!extractedData ? (
+                <HouseholdAIInput 
+                  onExtractionSuccess={(data) => {
+                    setExtractedData(data);
+                  }} 
+                />
+              ) : (
+                <HouseholdReview
+                  initialData={extractedData}
+                  onConfirm={(reviewedData) => {
+                    console.log("Confirmed Data:", reviewedData);
+                    // For Phase 3.4, we just pass it back. Let's alert for now.
+                    alert("Reviewed data confirmed! Check console for payload.");
+                  }}
+                  onCancel={() => setExtractedData(null)}
+                />
+              )}
+
+              <div className="py-6 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-brand-navy-50 text-brand-navy-900 mx-auto flex items-center justify-center border border-brand-navy-100">
+                  <Building className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="max-w-md mx-auto space-y-2 mt-4">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Manual Roster (Coming Soon)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600">
+                    Phase 3.3 adds AI extraction preview. Full editing and confirmation will be available in future updates.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={() => onStepChange(currentStep - 1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="saffron"
+                  size="lg"
+                  onClick={() => onStepChange(currentStep + 1)}
+                >
+                  Continue
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5 Preview */}
+          {currentStep === 5 && (
+            <div className="space-y-6 py-6 text-center">
+              <div className="h-16 w-16 rounded-2xl bg-brand-navy-50 text-brand-navy-900 mx-auto flex items-center justify-center border border-brand-navy-100">
+                <ShieldCheck className="h-8 w-8 text-emerald-600" />
+              </div>
+
+              <div className="max-w-md mx-auto space-y-2">
+                <h3 className="text-xl font-bold text-slate-900">
+                  Step 5: Digital Acknowledgment
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  This multi-step form preview demonstrates the simplified citizen workflow designed for Phase 1. Complete validation and encrypted submission will be integrated in Phase 2.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={() => onStepChange(currentStep - 1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="saffron"
+                  size="lg"
+                  onClick={handleContinue}
+                >
+                  Submit Demo Form
+                  <CheckCircle2 className="h-4 w-4 ml-2" />
+                </Button>
               </div>
             </div>
           )}
