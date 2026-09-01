@@ -9,12 +9,14 @@ import {
   AlertTriangle,
   FileText,
   AlertCircle,
-  ExternalLink,
   ArrowRight,
   ShieldCheck,
+  Loader2,
+  Sparkles,
+  Bot,
 } from "lucide-react";
 import { MYTHS_DATA, searchMyths } from "@/data/mythsData";
-import { MythEntry, VerdictType } from "@/types/myth";
+import { MythEntry, VerdictType, MythInterpretationResponse } from "@/types/myth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -38,23 +40,128 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedMyth, setSelectedMyth] = React.useState<MythEntry | null>(null);
 
+  // Phase 6.2A State variables
+  const [isAnalyzingAI, setIsAnalyzingAI] = React.useState<boolean>(false);
+  const [aiResult, setAiResult] = React.useState<MythInterpretationResponse | null>(null);
+
   // Deterministic keyword matching via searchMyths helper
   const displayedMyths = React.useMemo(() => {
+    // If we have an AI result that matched a myth, prioritize that match first in displayed list
+    if (aiResult?.matchedMyth) {
+      const otherMyths = searchMyths(searchQuery, selectedCategory).filter(
+        (m) => m.id !== aiResult.matchedMyth?.id
+      );
+      return [aiResult.matchedMyth, ...otherMyths];
+    }
     return searchMyths(searchQuery, selectedCategory);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, aiResult]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearchSubmit = async (e?: React.FormEvent, customQuery?: string) => {
+    if (e) e.preventDefault();
+    const queryToUse = (customQuery !== undefined ? customQuery : searchQuery).trim();
+    if (!queryToUse) {
+      setAiResult(null);
+      setSelectedMyth(null);
+      return;
+    }
+
+    setSearchQuery(queryToUse);
+    setAiResult(null);
+
+    // Call Gemini Myth Interpretation & Translation API
+    setIsAnalyzingAI(true);
+    try {
+      const res = await fetch("/api/ai/mythbuster", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: queryToUse }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          const apiResp = json as MythInterpretationResponse;
+          setAiResult(apiResp);
+          if (apiResp.matchedMyth) {
+            setSelectedMyth(apiResp.matchedMyth);
+          }
+        }
+      }
+    } catch {
+      // Fallback gracefully to local keyword match or unverified message on network failure
+      const localMatches = searchMyths(queryToUse, selectedCategory);
+      if (localMatches.length > 0) {
+        setAiResult({
+          query: queryToUse,
+          isCensusRelated: true,
+          matchFound: true,
+          source: "deterministic",
+          matchedMyth: localMatches[0],
+        });
+        setSelectedMyth(localMatches[0]);
+      } else {
+        setAiResult({
+          query: queryToUse,
+          isCensusRelated: true,
+          matchFound: false,
+          source: "unverified",
+          message: "We could not verify this claim using the current CensusAI Connect knowledge base.",
+        });
+      }
+    } finally {
+      setIsAnalyzingAI(false);
+    }
   };
 
-  const getVerdictBadge = (verdict: VerdictType) => {
+
+  const getLocalizedVerdictLabel = (verdict: VerdictType, lang?: string) => {
+    const normLang = (lang || "English").toLowerCase();
+
+    if (normLang.includes("hindi")) {
+      switch (verdict) {
+        case "false": return "गलत";
+        case "misleading": return "भ्रामक";
+        case "needs_verification": return "सत्यापन आवश्यक";
+      }
+    }
+    if (normLang.includes("marathi")) {
+      switch (verdict) {
+        case "false": return "चुकीचे";
+        case "misleading": return "भ्रामक";
+        case "needs_verification": return "पडताळणी आवश्यक";
+      }
+    }
+    if (normLang.includes("tamil")) {
+      switch (verdict) {
+        case "false": return "தவறு";
+        case "misleading": return "தவறாக வழிநடத்துவது";
+        case "needs_verification": return "சரிபார்ப்பு தேவை";
+      }
+    }
+    if (normLang.includes("bengali")) {
+      switch (verdict) {
+        case "false": return "ভুল";
+        case "misleading": return "বিভ্রান্তিকর";
+        case "needs_verification": return "যাচাই প্রয়োজন";
+      }
+    }
+
+    switch (verdict) {
+      case "false": return "FALSE";
+      case "misleading": return "MISLEADING";
+      case "needs_verification": return "NEEDS VERIFICATION";
+    }
+  };
+
+  const getVerdictBadge = (verdict: VerdictType, lang?: string) => {
+    const label = getLocalizedVerdictLabel(verdict, lang);
     switch (verdict) {
       case "false":
         return (
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 border border-rose-200 text-rose-700">
             <XCircle className="h-4 w-4 text-rose-600 shrink-0" />
             <span className="font-bold text-xs uppercase tracking-wider">
-              VERDICT: FALSE
+              VERDICT: {label}
             </span>
           </div>
         );
@@ -63,7 +170,7 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
             <span className="font-bold text-xs uppercase tracking-wider">
-              VERDICT: MISLEADING
+              VERDICT: {label}
             </span>
           </div>
         );
@@ -72,12 +179,13 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-800">
             <AlertCircle className="h-4 w-4 text-blue-600 shrink-0" />
             <span className="font-bold text-xs uppercase tracking-wider">
-              VERDICT: NEEDS VERIFICATION
+              VERDICT: {label}
             </span>
           </div>
         );
     }
   };
+
 
   return (
     <div className="space-y-8">
@@ -94,34 +202,66 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
 
       {/* 2. Search Box */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6">
-        <form onSubmit={handleSearchSubmit} className="space-y-3">
+        <form onSubmit={(e) => handleSearchSubmit(e)} className="space-y-3">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
             Search Myth Knowledge Base
           </label>
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Ask about a census claim or paste a message to check..."
-              className="pl-10 py-3 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500"
-            />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <Input
+                value={searchQuery}
+                disabled={isAnalyzingAI}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Ask about a census claim or paste a message to check..."
+                className="pl-10 py-3 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 disabled:bg-slate-100"
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="saffron"
+              size="md"
+              disabled={isAnalyzingAI}
+              className="shrink-0"
+            >
+              {isAnalyzingAI ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing Claim...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Verify Claim
+                </>
+              )}
+            </Button>
           </div>
         </form>
 
         {/* Quick Suggestion Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pt-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
-            Try searching:
+            Try test queries:
           </span>
-          {["OTP", "Police", "tax", "WhatsApp", "bank password"].map((chip) => (
+          {[
+            "Someone sent me a census link and asked for my OTP",
+            "Can the government use my census answers to calculate my taxes?",
+            "My bank password is needed for verification, right?",
+            "I got a suspicious WhatsApp message about the census",
+            "Tell me the best pizza recipe",
+          ].map((chip) => (
             <button
               key={chip}
               type="button"
-              onClick={() => setSearchQuery(chip)}
-              className="text-xs px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 whitespace-nowrap transition-colors"
+              disabled={isAnalyzingAI}
+              onClick={() => {
+                setSearchQuery(chip);
+                handleSearchSubmit(undefined, chip);
+              }}
+              className="text-xs px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 whitespace-nowrap transition-colors truncate max-w-xs"
             >
-              {chip}
+              &ldquo;{chip}&rdquo;
             </button>
           ))}
         </div>
@@ -151,8 +291,73 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
         </div>
       </div>
 
-      {/* Selected Myth Detail Modal / Header Preview if selected */}
-      {selectedMyth && (
+      {/* AI Processing Loading State */}
+      {isAnalyzingAI && (
+        <div className="p-4 bg-rose-50 text-rose-900 rounded-2xl border border-rose-200 flex items-center gap-3 animate-pulse">
+          <Loader2 className="h-5 w-5 text-rose-600 shrink-0 animate-spin" />
+          <div>
+            <h4 className="font-bold text-sm">Interpreting Claim & Concept...</h4>
+            <p className="text-xs text-rose-800">
+              Extracting intent and matching against local mythsData.ts knowledge base.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* AI-Assisted Concept Banner */}
+      {aiResult && !isAnalyzingAI && (
+        <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2 shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-brand-saffron-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                User Query Analysis
+              </span>
+            </div>
+            {aiResult.source === "ai_assisted" && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-rose-900/80 text-rose-200 border border-rose-700/60 font-medium">
+                AI-assisted interpretation
+              </span>
+            )}
+            {aiResult.source === "deterministic" && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-900/80 text-emerald-200 border border-emerald-700/60 font-medium">
+                Direct Keyword Match
+              </span>
+            )}
+          </div>
+
+          <div className="text-sm font-semibold text-slate-100 flex flex-wrap items-center gap-2">
+            <span>Query: &ldquo;{aiResult.query}&rdquo;</span>
+            {aiResult.aiInterpretation?.originalLanguage && (
+              <span className="text-[10px] px-2 py-0.5 rounded bg-brand-navy-800 text-brand-saffron-300 font-mono font-medium border border-brand-navy-700">
+                Detected: {aiResult.aiInterpretation.originalLanguage}
+              </span>
+            )}
+          </div>
+
+          {aiResult.aiInterpretation?.normalizedQuery &&
+            aiResult.aiInterpretation.normalizedQuery.toLowerCase() !== aiResult.query.toLowerCase() && (
+              <div className="text-xs text-slate-300 font-medium italic">
+                Normalized Meaning: &ldquo;{aiResult.aiInterpretation.normalizedQuery}&rdquo;
+              </div>
+            )}
+
+          {aiResult.aiInterpretation?.keywords && aiResult.aiInterpretation.keywords.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap text-xs pt-1">
+              <span className="text-slate-400 font-medium">Extracted English Concepts:</span>
+              {aiResult.aiInterpretation.keywords.map((kw, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-slate-800 text-brand-saffron-300 font-mono text-[11px]">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* Selected Myth Detail Card */}
+      {selectedMyth && !isAnalyzingAI && (
         <div className="bg-white rounded-3xl border border-rose-200 shadow-md p-6 sm:p-8 space-y-5 animate-in fade-in duration-200 relative">
           <button
             type="button"
@@ -161,34 +366,69 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
           >
             Close Detail ✕
           </button>
-          <div className="flex items-center gap-2">
-            {getVerdictBadge(selectedMyth.verdict)}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {getVerdictBadge(
+              aiResult?.localizedMyth?.verdict || selectedMyth.verdict,
+              aiResult?.responseLanguage
+            )}
             <Badge variant="outline" size="sm" className="capitalize">
               Category: {selectedMyth.category}
             </Badge>
+            {aiResult?.responseLanguage && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+                Response language: <strong>{aiResult.responseLanguage}</strong>
+              </span>
+            )}
           </div>
+
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Myth Statement</span>
             <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-              &ldquo;{selectedMyth.myth}&rdquo;
+              &ldquo;{aiResult?.localizedMyth?.myth || selectedMyth.myth}&rdquo;
             </h3>
           </div>
+
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Explanation</h4>
-            <p className="text-sm text-slate-800 leading-relaxed">{selectedMyth.explanation}</p>
+            <p className="text-sm text-slate-800 leading-relaxed">
+              {aiResult?.localizedMyth?.explanation || selectedMyth.explanation}
+            </p>
           </div>
-          {selectedMyth.safetyGuidance && (
+
+          {(aiResult?.localizedMyth?.safetyGuidance || selectedMyth.safetyGuidance) && (
             <div className="p-4 bg-rose-50/70 rounded-2xl border border-rose-200 text-rose-950 text-xs sm:text-sm space-y-0.5">
               <h4 className="font-bold text-rose-900 flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-rose-600" />
                 Safety Guidance
               </h4>
-              <p className="text-rose-900 leading-relaxed">{selectedMyth.safetyGuidance}</p>
+              <p className="text-rose-900 leading-relaxed">
+                {aiResult?.localizedMyth?.safetyGuidance || selectedMyth.safetyGuidance}
+              </p>
             </div>
           )}
+
           <div className="text-xs text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between">
             <span>Reference: <strong>{selectedMyth.sourceLabel}</strong></span>
-            <span className="font-mono text-[11px]">Local mythsData.ts</span>
+            <span className="font-mono text-[11px]">Source: mythsData.ts</span>
+          </div>
+        </div>
+      )}
+
+
+      {/* Unverified / Unmatched Query Result Box */}
+      {aiResult && !aiResult.matchFound && !isAnalyzingAI && (
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4 shadow-sm">
+          <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+            <Search className="h-6 w-6" />
+          </div>
+          <div className="space-y-1 max-w-md mx-auto">
+            <h4 className="text-base font-bold text-slate-900">
+              We could not verify this claim using the current CensusAI Connect knowledge base.
+            </h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Please check official government channels such as the Office of the Registrar General & Census Commissioner, India (ORGI) or Ministry of Home Affairs for verified notifications.
+            </p>
           </div>
         </div>
       )}
@@ -199,13 +439,17 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
           <h3 className="text-lg font-bold text-slate-900">
             Fact-Check Library ({displayedMyths.length} entries)
           </h3>
-          {searchQuery && (
+          {(searchQuery || aiResult) && (
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setAiResult(null);
+                setSelectedMyth(null);
+              }}
               className="text-xs text-brand-navy-700 hover:underline font-semibold"
             >
-              Clear Search
+              Clear Search & Results
             </button>
           )}
         </div>
@@ -216,7 +460,10 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
               <div
                 key={item.id}
                 onClick={() => setSelectedMyth(item)}
-                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs hover:shadow-md transition-all cursor-pointer space-y-4 flex flex-col justify-between"
+                className={cn(
+                  "bg-white rounded-2xl border p-6 shadow-2xs hover:shadow-md transition-all cursor-pointer space-y-4 flex flex-col justify-between",
+                  selectedMyth?.id === item.id ? "border-rose-500 ring-2 ring-rose-200" : "border-slate-200"
+                )}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
@@ -255,14 +502,14 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
             ))}
           </div>
         ) : (
-          /* Unmatched / Empty Search Result */
+          /* Unmatched Empty State */
           <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center space-y-4">
             <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Search className="h-6 w-6" />
             </div>
             <div className="space-y-1 max-w-md mx-auto">
               <h4 className="text-base font-bold text-slate-900">
-                We could not verify this claim using the current Mythbuster knowledge base.
+                We could not verify this claim using the current CensusAI Connect knowledge base.
               </h4>
               <p className="text-xs text-slate-500 leading-relaxed">
                 Please check official government channels such as the Office of the Registrar General & Census Commissioner, India (ORGI) or Ministry of Home Affairs for verified notifications.
@@ -276,6 +523,7 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCategory("All");
+                  setAiResult(null);
                 }}
               >
                 View All Myth Entries
@@ -287,3 +535,4 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
     </div>
   );
 }
+

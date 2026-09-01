@@ -1,3 +1,5 @@
+export type DataCategory = "population" | "households" | "literacy" | "gender" | "urban_rural";
+
 export interface DemographicMetric {
   id: string;
   label: string;
@@ -5,7 +7,8 @@ export interface DemographicMetric {
   change: string;
   changeType: "increase" | "neutral" | "decrease";
   description: string;
-  category: "population" | "literacy" | "housing" | "digital";
+  category: DataCategory | "digital" | "housing";
+  iconType?: "population" | "households" | "literacy" | "growth" | "gender" | "urban_rural";
 }
 
 export interface StateInsight {
@@ -18,9 +21,15 @@ export interface StateInsight {
   cleanFuelPct: number;
 }
 
+export interface DistrictOption {
+  id: string;
+  name: string;
+}
+
 export interface ChartDataPoint {
   label: string;
   value: number;
   secondaryValue?: number;
   tooltip?: string;
 }
+

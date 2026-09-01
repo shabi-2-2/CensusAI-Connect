@@ -12,6 +12,8 @@ import {
   CENSUSAI_SYSTEM_INSTRUCTION,
   EXTRACTION_SYSTEM_INSTRUCTION,
   SCHEDULE_EXTRACTION_SYSTEM_INSTRUCTION,
+  MYTH_INTERPRETATION_SYSTEM_INSTRUCTION,
+  MYTH_TRANSLATION_SYSTEM_INSTRUCTION,
   buildContextPrefix,
   buildLanguageInstruction,
 } from "@/lib/prompts";
@@ -160,4 +162,63 @@ export async function generateScheduleExtraction(text: string): Promise<string> 
 
   return responseText;
 }
+
+/**
+ * Interprets user myth queries using Gemini to extract intent & keywords.
+ * Gemini DOES NOT generate final verdicts; verdicts are pulled from mythsData.ts.
+ * Runs server-side only.
+ */
+export async function generateMythInterpretation(text: string): Promise<string> {
+  const client = getClient();
+  const modelName = getModelName();
+
+  const response = await client.models.generateContent({
+    model: modelName,
+    contents: text,
+    config: {
+      systemInstruction: MYTH_INTERPRETATION_SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const responseText = response.text ?? "";
+  if (!responseText.trim()) {
+    throw new Error("Empty response received from Gemini.");
+  }
+
+  return responseText;
+}
+
+/**
+ * Translates and adapts an ALREADY GROUNDED myth entry into the target language.
+ * Gemini DOES NOT invent facts or change verdicts.
+ * Runs server-side only.
+ */
+export async function generateMythTranslation(
+  groundedMythData: Record<string, unknown>,
+  targetLanguage: string
+): Promise<string> {
+  const client = getClient();
+  const modelName = getModelName();
+
+  const userPrompt = `Target Language: ${targetLanguage}\n\nGrounded Myth Content to Translate:\n${JSON.stringify(groundedMythData, null, 2)}`;
+
+  const response = await client.models.generateContent({
+    model: modelName,
+    contents: userPrompt,
+    config: {
+      systemInstruction: MYTH_TRANSLATION_SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const responseText = response.text ?? "";
+  if (!responseText.trim()) {
+    throw new Error("Empty translation response received from Gemini.");
+  }
+
+  return responseText;
+}
+
+
 

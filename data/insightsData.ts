@@ -1,43 +1,97 @@
-import { DemographicMetric, StateInsight, ChartDataPoint } from "@/types/insights";
+import { DemographicMetric, StateInsight, ChartDataPoint, DataCategory } from "@/types/insights";
 
-export const KEY_METRICS: DemographicMetric[] = [
+export interface StateDistrictMap {
+  state: string;
+  districts: string[];
+}
+
+export const STATE_DISTRICTS_DATA: StateDistrictMap[] = [
   {
-    id: "metric-pop",
-    label: "Projected Population",
-    value: "1.428 Billion",
-    change: "+12.4% since 2011",
-    changeType: "increase",
-    description: "Estimated total population count across 36 States & Union Territories.",
-    category: "population",
+    state: "Maharashtra",
+    districts: ["All Districts", "Mumbai City", "Mumbai Suburban", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur"],
   },
   {
-    id: "metric-lit",
-    label: "National Literacy Rate",
-    value: "79.8%",
-    change: "+5.8% increase",
-    changeType: "increase",
-    description: "Combined literacy indicator for individuals aged 7 years and above.",
-    category: "literacy",
+    state: "Uttar Pradesh",
+    districts: ["All Districts", "Lucknow", "Kanpur Nagar", "Varanasi", "Agra", "Gautam Buddha Nagar (Noida)", "Prayagraj", "Ghaziabad"],
   },
   {
-    id: "metric-urban",
-    label: "Urban Population Share",
-    value: "35.2%",
-    change: "+4.1% urbanization",
-    changeType: "increase",
-    description: "Percentage of households residing in statutory towns and urban agglomerations.",
-    category: "housing",
+    state: "Karnataka",
+    districts: ["All Districts", "Bengaluru Urban", "Mysuru", "Dakshina Kannada", "Dharwad", "Belagavi", "Tumakuru"],
   },
   {
-    id: "metric-digital",
-    label: "Digital Access Indicator",
-    value: "68.5%",
-    change: "+44.0% since 2011",
-    changeType: "increase",
-    description: "Households with active smartphone or broadband internet connectivity.",
-    category: "digital",
+    state: "Tamil Nadu",
+    districts: ["All Districts", "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Kanchipuram"],
+  },
+  {
+    state: "West Bengal",
+    districts: ["All Districts", "Kolkata", "North 24 Parganas", "South 24 Parganas", "Howrah", "Darjeeling", "Murshidabad"],
+  },
+  {
+    state: "Bihar",
+    districts: ["All Districts", "Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Darbhanga", "Purnia"],
+  },
+  {
+    state: "Gujarat",
+    districts: ["All Districts", "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Gandhinagar"],
+  },
+  {
+    state: "Delhi (NCT)",
+    districts: ["All Districts", "New Delhi", "South Delhi", "North Delhi", "East Delhi", "West Delhi"],
   },
 ];
+
+export const CATEGORY_OPTIONS: { id: DataCategory; label: string }[] = [
+  { id: "population", label: "Population" },
+  { id: "households", label: "Households" },
+  { id: "literacy", label: "Literacy" },
+  { id: "gender", label: "Gender" },
+  { id: "urban_rural", label: "Urban vs Rural" },
+];
+
+export const SUMMARY_METRIC_CARDS: DemographicMetric[] = [
+  {
+    id: "metric-tot-pop",
+    label: "Total Population",
+    value: "112.3 Million",
+    change: "+12.1% decadal",
+    changeType: "increase",
+    description: "Estimated total citizen population count for selected state (Demonstration Data).",
+    category: "population",
+    iconType: "population",
+  },
+  {
+    id: "metric-tot-hh",
+    label: "Total Households",
+    value: "24.8 Million",
+    change: "+14.2% growth",
+    changeType: "increase",
+    description: "Total listed occupied residential & mixed-use census households.",
+    category: "households",
+    iconType: "households",
+  },
+  {
+    id: "metric-lit-rate",
+    label: "Literacy Rate",
+    value: "82.3%",
+    change: "+5.4% since 2011",
+    changeType: "increase",
+    description: "Overall effective literacy rate for population aged 7 years and above.",
+    category: "literacy",
+    iconType: "literacy",
+  },
+  {
+    id: "metric-pop-growth",
+    label: "Population Growth",
+    value: "1.25% p.a.",
+    change: "Stabilizing trend",
+    changeType: "neutral",
+    description: "Annualized demographic growth rate across urban & rural areas.",
+    category: "population",
+    iconType: "growth",
+  },
+];
+
+export const KEY_METRICS: DemographicMetric[] = SUMMARY_METRIC_CARDS;
 
 export const POPULATION_DECENNIAL_TREND: ChartDataPoint[] = [
   { label: "1971", value: 548, secondaryValue: 108 },
