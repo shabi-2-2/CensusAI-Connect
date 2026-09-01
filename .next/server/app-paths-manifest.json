@@ -1,7 +1,4 @@
 {
-  "/page": "app/page.js",
-  "/mythbuster/page": "app/mythbuster/page.js",
-  "/data-insights/page": "app/data-insights/page.js",
-  "/self-enumeration/page": "app/self-enumeration/page.js",
-  "/about/page": "app/about/page.js"
+  "/api/ai/chat/route": "app/api/ai/chat/route.js",
+  "/page": "app/page.js"
 }

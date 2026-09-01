@@ -4,6 +4,7 @@ import * as React from "react";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import { SUPPORTED_LANGUAGES, LanguageOption } from "@/data/languagesData";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export function LanguageSelector({
   variant = "desktop",
@@ -13,9 +14,7 @@ export function LanguageSelector({
   className?: string;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedLanguage, setSelectedLanguage] = React.useState<LanguageOption>(
-    SUPPORTED_LANGUAGES[0]
-  );
+  const { selectedLanguage, setSelectedLanguage } = useLanguage();
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {

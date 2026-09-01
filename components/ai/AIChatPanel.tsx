@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   X,
   Send,
@@ -16,9 +17,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatMessage } from "@/types/chat";
-import { SUGGESTED_PROMPTS } from "@/data/mockChatResponses";
+import { SUGGESTED_PROMPTS, PAGE_SUGGESTIONS } from "@/data/mockChatResponses";
 import { getAIAssistantResponse } from "@/lib/ai-assistant";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface AIChatPanelProps {
   isOpen: boolean;
@@ -31,6 +33,9 @@ export function AIChatPanel({
   onClose,
   initialPrompt,
 }: AIChatPanelProps) {
+  const pathname = usePathname();
+  const { selectedLanguage } = useLanguage();
+
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
       id: "welcome-msg",
@@ -64,6 +69,15 @@ export function AIChatPanel({
     }
   }, [initialPrompt, isOpen]);
 
+  const getContextString = () => {
+    if (pathname === "/about") return "Phase 1 / Phase 2 (About Census)";
+    if (pathname === "/schedule") return "State Schedule";
+    if (pathname === "/mythbuster") return "Mythbuster / Privacy";
+    if (pathname === "/self-enumeration") return "Self-Enumeration Portal";
+    if (pathname === "/data-insights") return "Data Insights Dashboard";
+    return "Homepage";
+  };
+
   const handleSendMessage = async (queryText?: string) => {
     const textToSend = queryText || inputValue;
     if (!textToSend.trim() || isTyping) return;
@@ -80,7 +94,12 @@ export function AIChatPanel({
     setIsTyping(true);
 
     try {
-      const aiResult = await getAIAssistantResponse(textToSend, messages);
+      const aiResult = await getAIAssistantResponse(
+        textToSend,
+        messages,
+        getContextString(),
+        selectedLanguage.name
+      );
       const assistantMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         role: "assistant",
@@ -89,14 +108,13 @@ export function AIChatPanel({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch {
+    } catch (err: any) {
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-err-${Date.now()}`,
           role: "assistant",
-          content:
-            "I encountered a temporary issue retrieving census information. Please try asking again or select one of the suggested topics below.",
+          content: err?.message || "I encountered a temporary issue retrieving census information. Please try asking again.",
           timestamp: new Date(),
         },
       ]);
@@ -127,6 +145,15 @@ export function AIChatPanel({
       },
     ]);
   };
+
+  const currentSuggestions = React.useMemo(() => {
+    if (pathname === "/about") return PAGE_SUGGESTIONS["phase1"];
+    if (pathname === "/schedule") return PAGE_SUGGESTIONS["schedule"];
+    if (pathname === "/mythbuster") return PAGE_SUGGESTIONS["mythbuster"];
+    if (pathname === "/self-enumeration") return PAGE_SUGGESTIONS["home"];
+    if (pathname === "/data-insights") return PAGE_SUGGESTIONS["data-insights"];
+    return PAGE_SUGGESTIONS["home"] || SUGGESTED_PROMPTS.slice(0, 3);
+  }, [pathname]);
 
   if (!isOpen) return null;
 
@@ -273,7 +300,7 @@ export function AIChatPanel({
           <Sparkles className="h-3 w-3 text-brand-saffron-500" />
           Quick:
         </span>
-        {SUGGESTED_PROMPTS.slice(0, 3).map((prompt) => (
+        {currentSuggestions.slice(0, 3).map((prompt) => (
           <button
             key={prompt.id}
             onClick={() => handleSendMessage(prompt.text)}

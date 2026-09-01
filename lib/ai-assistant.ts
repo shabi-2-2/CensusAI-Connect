@@ -1,38 +1,41 @@
 import { ChatMessage } from "@/types/chat";
-import { MOCK_KNOWLEDGE_BASE, DEFAULT_AI_RESPONSE } from "@/data/mockChatResponses";
 
 /**
  * Generate AI Assistant response for a given user query.
- * In Phase 1, this uses keyword matching against the mock census knowledge base.
- * In Phase 2, this will route to Google Gemini 1.5/2.0 API with RAG embeddings.
+ * In Phase 2, this routes to the secure Next.js API route (/api/ai/chat) which uses Gemini.
  */
 export async function getAIAssistantResponse(
   userQuery: string,
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
+  context?: string,
+  language?: string
 ): Promise<{ content: string; actions?: ChatMessage["suggestedActions"] }> {
-  // Simulate natural network delay for AI streaming/thinking feel
-  await new Promise((resolve) => setTimeout(resolve, 450));
+  try {
+    const response = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: userQuery,
+        history: history.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        context,
+        language,
+      }),
+    });
 
-  const lower = userQuery.toLowerCase().trim();
+    const data = await response.json();
 
-  // Find best match in mock knowledge base
-  for (const item of MOCK_KNOWLEDGE_BASE) {
-    const isMatch = item.keywords.some((kw) => lower.includes(kw));
-    if (isMatch) {
-      return {
-        content: item.response,
-        actions: item.suggestedActions,
-      };
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to get AI response");
     }
-  }
 
-  // Fallback answer with contextual guidance
-  return {
-    content: `Thank you for your question about **"${userQuery}"**.\n\nIn India's Digital Census:\n• **Phase 1** focuses on houselisting and housing amenities (water, electricity, sanitation, clean fuel).\n• **Phase 2** covers population enumeration and demographics (age, education, occupation, languages).\n• You can self-enumerate online during your state's active window or wait for an enumerator visit.\n\nWould you like me to guide you to your state's schedule, preview the self-enumeration form, or explain privacy safeguards?`,
-    actions: [
-      { label: "Understand Phase 1 & 2", actionType: "link", target: "/about" },
-      { label: "Check State Schedule", actionType: "link", target: "/schedule" },
-      { label: "Verify Claims on Mythbuster", actionType: "link", target: "/mythbuster" },
-    ],
-  };
+    return {
+      content: data.message,
+    };
+  } catch (error: any) {
+    console.error("AI Assistant Error:", error);
+    throw error;
+  }
 }
