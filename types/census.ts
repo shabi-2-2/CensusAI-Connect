@@ -43,3 +43,17 @@ export interface HouseholdFormData {
   hasInternet: boolean;
   hasVehicle: string;
 }
+
+export interface HouseholdMember {
+  id: string;
+  relationship: string;
+  age?: number | null;
+  gender?: string | null;
+}
+
+export interface HouseholdExtraction {
+  householdCount: number | null;
+  members: HouseholdMember[];
+  confidence: "high" | "medium" | "low";
+  notes: string[];
+}
