@@ -193,7 +193,7 @@ export function HouseholdReview({
         </Button>
         <Button type="button" variant="saffron" size="md" onClick={handleContinue}>
           <CheckCircle2 className="h-4 w-4 mr-2" />
-          Continue
+          Confirm & Fill Form
         </Button>
       </div>
     </div>

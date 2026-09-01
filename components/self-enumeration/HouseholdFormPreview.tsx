@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Building,
   Info,
+  Trash2,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -21,7 +23,7 @@ import { Badge } from "@/components/ui/Badge";
 import { STATE_SCHEDULES } from "@/data/scheduleData";
 import { HouseholdAIInput } from "@/components/self-enumeration/HouseholdAIInput";
 import { HouseholdReview } from "@/components/self-enumeration/HouseholdReview";
-import { HouseholdExtraction } from "@/types/census";
+import { HouseholdExtraction, HouseholdMember } from "@/types/census";
 
 interface HouseholdFormPreviewProps {
   currentStep: number;
@@ -56,12 +58,25 @@ export function HouseholdFormPreview({
   );
 
   const [extractedData, setExtractedData] = React.useState<HouseholdExtraction | null>(null);
+  
+  // Manual Roster State
+  const [householdCount, setHouseholdCount] = React.useState<number | "">("");
+  const [rosterMembers, setRosterMembers] = React.useState<HouseholdMember[]>([]);
+  const [showSuccessMsg, setShowSuccessMsg] = React.useState(false);
 
   const handleInputChange = (
     field: string,
     value: string
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleConfirmAI = (reviewedData: HouseholdExtraction) => {
+    setHouseholdCount(reviewedData.householdCount ?? "");
+    setRosterMembers(reviewedData.members);
+    setExtractedData(null);
+    setShowSuccessMsg(true);
+    setTimeout(() => setShowSuccessMsg(false), 5000);
   };
 
   const handleContinue = (e: React.FormEvent) => {
@@ -358,6 +373,20 @@ export function HouseholdFormPreview({
           {/* Step 4 Preview */}
           {currentStep === 4 && (
             <div className="space-y-6">
+              {showSuccessMsg && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-emerald-900">
+                      Form Filled via AI
+                    </h4>
+                    <p className="text-xs text-emerald-800 mt-1">
+                      CensusAI successfully filled your household details. You can continue editing below if needed.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {!extractedData ? (
                 <HouseholdAIInput 
                   onExtractionSuccess={(data) => {
@@ -367,26 +396,114 @@ export function HouseholdFormPreview({
               ) : (
                 <HouseholdReview
                   initialData={extractedData}
-                  onConfirm={(reviewedData) => {
-                    console.log("Confirmed Data:", reviewedData);
-                    // For Phase 3.4, we just pass it back. Let's alert for now.
-                    alert("Reviewed data confirmed! Check console for payload.");
-                  }}
+                  onConfirm={handleConfirmAI}
                   onCancel={() => setExtractedData(null)}
                 />
               )}
 
-              <div className="py-6 text-center">
-                <div className="h-16 w-16 rounded-2xl bg-brand-navy-50 text-brand-navy-900 mx-auto flex items-center justify-center border border-brand-navy-100">
-                  <Building className="h-8 w-8 text-blue-600" />
-                </div>
-                <div className="max-w-md mx-auto space-y-2 mt-4">
-                  <h3 className="text-xl font-bold text-slate-900">
-                    Manual Roster (Coming Soon)
+              {/* Manual Form Area */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Building className="h-5 w-5 text-brand-navy-500" />
+                    Resident Count & Roster
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600">
-                    Phase 3.3 adds AI extraction preview. Full editing and confirmation will be available in future updates.
+                  <p className="text-sm text-slate-500 mt-1">
+                    Enter the total number of residents and list each member.
                   </p>
+                </div>
+
+                <div className="max-w-xs">
+                  <Input
+                    type="number"
+                    label="Total Household Count"
+                    value={householdCount}
+                    onChange={(e) => setHouseholdCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                    placeholder="e.g. 4"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-slate-700">Household Members</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setRosterMembers((prev) => [
+                          ...prev,
+                          { id: `m-${Date.now()}`, relationship: "", age: null, gender: null },
+                        ]);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1.5" />
+                      Add Member
+                    </Button>
+                  </div>
+
+                  {rosterMembers.length === 0 ? (
+                    <div className="py-8 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                      <p className="text-sm text-slate-500">No members added yet.</p>
+                      <p className="text-xs text-slate-400 mt-1">Use AI extraction above or add manually.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {rosterMembers.map((member, idx) => (
+                        <div key={member.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-end p-4 rounded-xl border border-slate-200 bg-slate-50">
+                          <div className="flex-1 w-full sm:w-auto">
+                            <Input
+                              label={`Member ${idx + 1} Relationship`}
+                              value={member.relationship}
+                              onChange={(e) => {
+                                const newMembers = [...rosterMembers];
+                                newMembers[idx].relationship = e.target.value;
+                                setRosterMembers(newMembers);
+                              }}
+                            />
+                          </div>
+                          <div className="w-full sm:w-24">
+                            <Input
+                              type="number"
+                              label="Age"
+                              value={member.age ?? ""}
+                              onChange={(e) => {
+                                const newMembers = [...rosterMembers];
+                                newMembers[idx].age = e.target.value === "" ? null : parseInt(e.target.value);
+                                setRosterMembers(newMembers);
+                              }}
+                            />
+                          </div>
+                          <div className="w-full sm:w-32">
+                            <Select
+                              label="Gender"
+                              value={member.gender ?? ""}
+                              onChange={(e) => {
+                                const newMembers = [...rosterMembers];
+                                newMembers[idx].gender = e.target.value;
+                                setRosterMembers(newMembers);
+                              }}
+                            >
+                              <option value="">Select...</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                              <option value="Transgender">Transgender</option>
+                            </Select>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRosterMembers((prev) => prev.filter((m) => m.id !== member.id));
+                            }}
+                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-2 sm:mt-0"
+                            title="Remove member"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -43,12 +43,15 @@ export function validateHouseholdExtraction(rawData: any): HouseholdExtraction {
 
   // Safely parse members array
   if (Array.isArray(rawData.members)) {
-    result.members = rawData.members.reduce((safeMembers: HouseholdMember[], member: any) => {
-      // Ensure member is an object and has a required id
+    result.members = rawData.members.reduce((safeMembers: HouseholdMember[], member: any, index: number) => {
+      // Ensure member is an object
       if (!member || typeof member !== "object") return safeMembers;
 
-      const safeId = typeof member.id === "string" && member.id.trim() ? member.id.trim() : null;
-      if (!safeId) return safeMembers; // Member ID is strictly required
+      // Generate a safe ID — Gemini does not produce IDs, so we synthesize one
+      const safeId =
+        typeof member.id === "string" && member.id.trim()
+          ? member.id.trim()
+          : `ai-member-${index}-${Date.now()}`;
 
       // Default relationship if missing or invalid
       const safeRelationship =
