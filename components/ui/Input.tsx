@@ -6,12 +6,19 @@ export interface InputProps
   error?: string;
   helperText?: string;
   icon?: React.ReactNode;
+  /** Optional label rendered above the input */
+  label?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = "text", error, helperText, icon, ...props }, ref) => {
+  ({ className, type = "text", error, helperText, icon, label, ...props }, ref) => {
     return (
       <div className="w-full">
+        {label && (
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+            {label}
+          </label>
+        )}
         <div className="relative flex items-center">
           {icon && (
             <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center">
