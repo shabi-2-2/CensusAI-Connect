@@ -5,8 +5,10 @@ import { FormStepper } from "@/components/self-enumeration/FormStepper";
 import { HouseholdFormPreview } from "@/components/self-enumeration/HouseholdFormPreview";
 import { AIAssistantFloating } from "@/components/ai/AIAssistantFloating";
 import { Sparkles, FileEdit, Shield } from "lucide-react";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export default function SelfEnumerationPage() {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = React.useState(1);
   const [isAIOpen, setIsAIOpen] = React.useState(false);
   const [aiPrompt, setAiPrompt] = React.useState<string | undefined>(undefined);
@@ -28,10 +30,10 @@ export default function SelfEnumerationPage() {
                 <span>Digital Self-Enumeration Portal Preview</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Self Enumeration Wizard
+                {t("selfEnum.title")}
               </h1>
               <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
-                Complete your household data in advance online, at your own pace, on any smartphone or computer.
+                {t("selfEnum.subtitle")}
               </p>
             </div>
 

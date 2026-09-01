@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/Button";
 import { LanguageSelector } from "./LanguageSelector";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -27,12 +29,12 @@ export function Navbar() {
   }, []);
 
   const navItems = [
-    { label: "Home", href: "/" },
-    { label: "About Census", href: "/about" },
-    { label: "Self Enumeration", href: "/self-enumeration" },
-    { label: "Schedule", href: "/schedule" },
-    { label: "Mythbuster", href: "/mythbuster" },
-    { label: "Data Insights", href: "/data-insights" },
+    { label: t("nav.home"), href: "/" },
+    { label: t("nav.about"), href: "/about" },
+    { label: t("nav.selfEnumeration"), href: "/self-enumeration" },
+    { label: t("nav.schedule"), href: "/schedule" },
+    { label: t("nav.mythbuster"), href: "/mythbuster" },
+    { label: t("nav.dataInsights"), href: "/data-insights" },
   ];
 
   return (
@@ -70,7 +72,7 @@ export function Navbar() {
                   </span>
                 </div>
                 <span className="text-[11px] font-medium text-slate-500 hidden sm:inline">
-                  India&apos;s Digital Census Platform
+                  {t("nav.platformSubtitle")}
                 </span>
               </div>
             </Link>
@@ -105,7 +107,7 @@ export function Navbar() {
               <Link href="/self-enumeration">
                 <Button variant="saffron" size="sm" className="font-semibold shadow-xs">
                   <Sparkles className="h-3.5 w-3.5 mr-1" />
-                  Start Self Enumeration
+                  {t("nav.startSelfEnumeration")}
                 </Button>
               </Link>
             </div>
@@ -133,3 +135,4 @@ export function Navbar() {
     </>
   );
 }
+

@@ -21,21 +21,25 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
+
+import { TranslationKey } from "@/translations";
 
 interface MythVerifierProps {
   onAskAI?: (prompt: string) => void;
 }
 
-const CATEGORIES = [
-  { label: "All", id: "All" },
-  { label: "Privacy", id: "privacy" },
-  { label: "Fraud & Safety", id: "fraud" },
-  { label: "Data Use", id: "data" },
-  { label: "Enumeration", id: "enumeration" },
-  { label: "Eligibility", id: "eligibility" },
+const CATEGORIES: { label: string; id: string; key: TranslationKey }[] = [
+  { label: "All", id: "All", key: "myth.filterAll" },
+  { label: "Privacy", id: "privacy", key: "myth.filterPrivacy" },
+  { label: "Fraud & Safety", id: "fraud", key: "myth.filterFraud" },
+  { label: "Data Use", id: "data", key: "myth.filterData" },
+  { label: "Enumeration", id: "enumeration", key: "myth.filterEnumeration" },
+  { label: "Eligibility", id: "eligibility", key: "myth.filterEligibility" },
 ];
 
 export function MythVerifier({ onAskAI }: MythVerifierProps) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedMyth, setSelectedMyth] = React.useState<MythEntry | null>(null);
@@ -195,7 +199,7 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
         <div className="space-y-0.5">
           <h4 className="font-bold text-amber-950">Prototype Safety Notice</h4>
           <p className="text-amber-900">
-            CensusAI Connect is a prototype. Always verify important census instructions through official government channels.
+            {t("myth.prototypeSafetyNotice")}
           </p>
         </div>
       </div>
@@ -204,7 +208,7 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6">
         <form onSubmit={(e) => handleSearchSubmit(e)} className="space-y-3">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-            Search Myth Knowledge Base
+            {t("myth.searchLabel")}
           </label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
@@ -213,7 +217,8 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
                 value={searchQuery}
                 disabled={isAnalyzingAI}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ask about a census claim or paste a message to check..."
+                placeholder={t("myth.placeholder")}
+                aria-label={t("myth.placeholder")}
                 className="pl-10 py-3 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 disabled:bg-slate-100"
               />
             </div>
@@ -221,18 +226,18 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
               type="submit"
               variant="saffron"
               size="md"
-              disabled={isAnalyzingAI}
+              disabled={isAnalyzingAI || !searchQuery.trim()}
               className="shrink-0"
             >
               {isAnalyzingAI ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Analyzing Claim...
+                  {t("myth.loading")}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Verify Claim
+                  {t("myth.button")}
                 </>
               )}
             </Button>
@@ -284,7 +289,7 @@ export function MythVerifier({ onAskAI }: MythVerifierProps) {
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 )}
               >
-                {cat.label}
+                {t(cat.key) || cat.label}
               </button>
             ))}
           </div>

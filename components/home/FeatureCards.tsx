@@ -14,18 +14,21 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface FeatureCardsProps {
   onOpenAI: (prompt?: string) => void;
 }
 
 export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
+  const { t } = useLanguage();
+
   const features = [
     {
       id: "understand",
       icon: Home,
-      title: "Understand the Census",
-      description: "Learn about the two major phases of the census: Houselisting and Population Enumeration.",
+      title: t("home.features.selfEnum.title"),
+      description: t("home.features.selfEnum.desc"),
       href: "/about",
       badge: "Phase 1 & 2",
       iconBg: "bg-blue-50 text-blue-600 border-blue-200",
@@ -35,8 +38,8 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
     {
       id: "schedule",
       icon: Calendar,
-      title: "Check Your Schedule",
-      description: "Find self-enumeration and census schedules based on your state and union territory.",
+      title: t("home.features.schedule.title"),
+      description: t("home.features.schedule.desc"),
       href: "/schedule",
       badge: "State Lookup",
       iconBg: "bg-amber-50 text-amber-600 border-amber-200",
@@ -46,8 +49,8 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
     {
       id: "self-enum",
       icon: FileEdit,
-      title: "Self Enumeration",
-      description: "Complete census information securely through a simple 5-step guided digital process.",
+      title: t("home.features.selfEnum.title"),
+      description: t("home.features.selfEnum.desc"),
       href: "/self-enumeration",
       badge: "Digital First",
       iconBg: "bg-emerald-50 text-emerald-600 border-emerald-200",
@@ -57,8 +60,8 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
     {
       id: "ai-assistant",
       icon: Bot,
-      title: "AI Census Assistant",
-      description: "Ask questions, get step-by-step guidance, and receive instant explanations in 13+ languages.",
+      title: t("home.features.aiAssistant.title"),
+      description: t("home.features.aiAssistant.desc"),
       onClick: () => onOpenAI("How can CensusAI help me fill my census details?"),
       badge: "GenAI Powered",
       iconBg: "bg-purple-50 text-purple-600 border-purple-200",
@@ -68,8 +71,8 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
     {
       id: "mythbuster",
       icon: ShieldCheck,
-      title: "Mythbuster",
-      description: "Verify census-related claims, legal privacy protections, and reduce digital misinformation.",
+      title: t("home.features.mythbuster.title"),
+      description: t("home.features.mythbuster.desc"),
       href: "/mythbuster",
       badge: "Fact Checker",
       iconBg: "bg-rose-50 text-rose-600 border-rose-200",
@@ -79,8 +82,8 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
     {
       id: "insights",
       icon: BarChart3,
-      title: "Data Insights",
-      description: "Explore census trends, literacy progress, and housing amenities through interactive charts.",
+      title: t("home.features.dataInsights.title"),
+      description: t("home.features.dataInsights.desc"),
       href: "/data-insights",
       badge: "Interactive",
       iconBg: "bg-cyan-50 text-cyan-600 border-cyan-200",
@@ -96,13 +99,13 @@ export function FeatureCards({ onOpenAI }: FeatureCardsProps) {
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-navy-50 text-brand-navy-900 text-xs font-semibold border border-brand-navy-100 mb-3">
             <Sparkles className="h-3.5 w-3.5 text-brand-saffron-500" />
-            <span>Comprehensive Citizen Suite</span>
+            <span>{t("common.getStarted")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Everything You Need for India&apos;s Digital Census
+            {t("home.features.title")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
-            Intuitive tools designed to empower every household with transparent information, schedule tracking, and AI assistance.
+            {t("home.features.subtitle")}
           </p>
         </div>
 

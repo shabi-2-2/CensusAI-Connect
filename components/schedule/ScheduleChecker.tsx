@@ -10,12 +10,14 @@ import { StateCensusSchedule, ScheduleQueryIntent, ScheduleExtractionResult } fr
 import { StateSelector } from "@/components/schedule/StateSelector";
 import { ScheduleCard } from "@/components/schedule/ScheduleCard";
 import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface ScheduleCheckerProps {
   onAskAI?: (prompt: string) => void;
 }
 
 export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
+  const { t } = useLanguage();
   const [selectedStateId, setSelectedStateId] = React.useState<string>("maharashtra");
   const [naturalQuery, setNaturalQuery] = React.useState<string>("");
   const [queryError, setQueryError] = React.useState<string | null>(null);
@@ -179,7 +181,7 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
         {/* Natural Language Query Input */}
         <form onSubmit={handleQuerySubmit} className="space-y-3">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-            Search by Location or Natural Query
+            {t("common.search")}
           </label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
@@ -192,7 +194,8 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
                   setNaturalQuery(e.target.value);
                   if (queryError) setQueryError(null);
                 }}
-                placeholder='Example: I live in Pune. When can I self-enumerate?'
+                placeholder={t("schedule.placeholder")}
+                aria-label={t("schedule.placeholder")}
                 className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-saffron-500 focus:border-transparent disabled:bg-slate-100"
               />
             </div>
@@ -200,18 +203,18 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
               type="submit"
               variant="saffron"
               size="md"
-              disabled={isProcessingAI}
+              disabled={isProcessingAI || !naturalQuery.trim()}
               className="shrink-0"
             >
               {isProcessingAI ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Analyzing...
+                  {t("common.loading")}
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  Find Schedule
+                  {t("schedule.button")}
                 </>
               )}
             </Button>
@@ -220,7 +223,10 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
 
         {/* STEP 7: Status Indicator while processing */}
         {isProcessingAI && (
-          <div className="p-3.5 bg-blue-50 text-blue-800 text-xs rounded-xl border border-blue-200 flex items-center gap-2.5 animate-pulse">
+          <div
+            className="p-3.5 bg-blue-50 text-blue-800 text-xs rounded-xl border border-blue-200 flex items-center gap-2.5 animate-pulse"
+            aria-live="polite"
+          >
             <Loader2 className="h-4 w-4 text-blue-600 shrink-0 animate-spin" />
             <span className="font-semibold">Understanding your question...</span>
           </div>
@@ -228,7 +234,10 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
 
         {/* Generated User Answer based ONLY on local schedule data */}
         {generatedAnswer && !isProcessingAI && (
-          <div className="p-4 bg-emerald-50/90 text-emerald-950 text-sm rounded-2xl border border-emerald-200/90 space-y-1 shadow-2xs">
+          <div
+            className="p-4 bg-emerald-50/90 text-emerald-950 text-sm rounded-2xl border border-emerald-200/90 space-y-1 shadow-2xs"
+            aria-live="polite"
+          >
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 uppercase tracking-wider">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               Answer Summary (Local Schedule Data)
@@ -241,7 +250,11 @@ export function ScheduleChecker({ onAskAI }: ScheduleCheckerProps) {
 
         {/* Query Error Notice */}
         {queryError && !isProcessingAI && (
-          <div className="p-3.5 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 flex items-center gap-2.5">
+          <div
+            className="p-3.5 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 flex items-center gap-2.5"
+            role="alert"
+            aria-live="assertive"
+          >
             <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
             <p className="font-medium">{queryError}</p>
           </div>

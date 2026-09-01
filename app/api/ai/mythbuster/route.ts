@@ -15,11 +15,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateMythInterpretation, generateMythTranslation } from "@/lib/gemini";
 import { searchMyths } from "@/data/mythsData";
 import { MythInterpretationResponse, MythEntry } from "@/types/myth";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rateLimit";
+import { sanitizeInput } from "@/lib/validators";
 
 const MAX_QUERY_LENGTH = 500;
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Rate limiting check
+    const clientId = getClientIdentifier(request.headers);
+    const rateLimit = checkRateLimit(clientId, { maxRequests: 30, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many verification requests. Please wait a moment before searching again.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     let body: unknown;
     try {
       body = await request.json();
@@ -40,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const rawQuery = query.trim();
+    const rawQuery = sanitizeInput(query, MAX_QUERY_LENGTH);
     if (rawQuery.length > MAX_QUERY_LENGTH) {
       return NextResponse.json(
         { success: false, error: `Query is too long (max ${MAX_QUERY_LENGTH} characters).` },

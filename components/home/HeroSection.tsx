@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Sparkles, ArrowRight, MessageSquareText, Shield, Globe, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { HeroVisual } from "./HeroVisual";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface HeroSectionProps {
   onOpenAI: (prompt?: string) => void;
 }
 
 export function HeroSection({ onOpenAI }: HeroSectionProps) {
+  const { t } = useLanguage();
+
   return (
     <section className="relative overflow-hidden pt-8 pb-16 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32 bg-gradient-to-b from-brand-navy-50/50 via-white to-slate-50/30">
       {/* Subtle background decorative shapes */}
@@ -24,22 +27,20 @@ export function HeroSection({ onOpenAI }: HeroSectionProps) {
             {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-navy-100 text-brand-navy-900 text-xs font-semibold border border-brand-navy-200/80 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-brand-saffron-500 animate-pulse" />
-              <span>India&apos;s Next Generation Digital Census</span>
-              <span className="text-slate-400">|</span>
-              <span className="text-brand-navy-700 font-medium">Phase 1 & 2 Ready</span>
+              <span>{t("home.hero.badge")}</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
-              India&apos;s Digital Census,{" "}
+              {t("home.hero.title")}{" "}
               <span className="bg-gradient-to-r from-brand-navy-900 via-brand-navy-700 to-brand-saffron-600 bg-clip-text text-transparent">
-                Made Simple with AI
+                {t("home.hero.titleHighlight")}
               </span>
             </h1>
 
             {/* Supporting Text */}
             <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              CensusAI Connect helps citizens understand the census, check important schedules, complete self-enumeration, and get AI-powered assistance in their preferred language.
+              {t("home.hero.description")}
             </p>
 
             {/* Action Buttons */}
@@ -47,7 +48,7 @@ export function HeroSection({ onOpenAI }: HeroSectionProps) {
               <Link href="/self-enumeration">
                 <Button variant="saffron" size="lg" className="w-full sm:w-auto shadow-md">
                   <Sparkles className="h-5 w-5 mr-2" />
-                  Start Self Enumeration
+                  {t("home.hero.ctaStart")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
@@ -59,7 +60,7 @@ export function HeroSection({ onOpenAI }: HeroSectionProps) {
                 className="w-full sm:w-auto border-slate-300 text-slate-800 hover:bg-slate-50 shadow-2xs"
               >
                 <MessageSquareText className="h-5 w-5 mr-2 text-brand-navy-700" />
-                Ask CensusAI
+                {t("home.hero.ctaAssistant")}
               </Button>
             </div>
 

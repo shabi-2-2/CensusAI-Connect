@@ -7,6 +7,7 @@ import { X, Sparkles, Home, Info, FileCheck, Calendar, ShieldCheck, BarChart3 } 
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface MobileNavProps {
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     if (isOpen) {
@@ -28,12 +30,12 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   }, [isOpen]);
 
   const navLinks = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "About Census", href: "/about", icon: Info },
-    { label: "Self Enumeration", href: "/self-enumeration", icon: FileCheck },
-    { label: "Schedule", href: "/schedule", icon: Calendar },
-    { label: "Mythbuster", href: "/mythbuster", icon: ShieldCheck },
-    { label: "Data Insights", href: "/data-insights", icon: BarChart3 },
+    { label: t("nav.home"), href: "/", icon: Home },
+    { label: t("nav.about"), href: "/about", icon: Info },
+    { label: t("nav.selfEnumeration"), href: "/self-enumeration", icon: FileCheck },
+    { label: t("nav.schedule"), href: "/schedule", icon: Calendar },
+    { label: t("nav.mythbuster"), href: "/mythbuster", icon: ShieldCheck },
+    { label: t("nav.dataInsights"), href: "/data-insights", icon: BarChart3 },
   ];
 
   if (!isOpen) return null;
@@ -59,7 +61,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                   CensusAI Connect
                 </div>
                 <div className="text-[10px] text-slate-500 font-medium">
-                  Digital Census Platform
+                  {t("nav.platformSubtitle")}
                 </div>
               </div>
             </div>
@@ -112,7 +114,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           <Link href="/self-enumeration" onClick={onClose} className="block w-full">
             <Button variant="saffron" size="md" className="w-full">
               <Sparkles className="h-4 w-4 mr-1.5" />
-              Start Self Enumeration
+              {t("nav.startSelfEnumeration")}
             </Button>
           </Link>
           <p className="text-[11px] text-center text-slate-500">
@@ -123,3 +125,4 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
     </div>
   );
 }
+

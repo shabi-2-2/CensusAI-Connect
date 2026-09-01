@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Check, Home, Sparkles, Users, UserCheck, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export interface StepDef {
   number: number;
@@ -15,16 +16,17 @@ interface FormStepperProps {
 }
 
 export function FormStepper({ currentStep, onStepClick }: FormStepperProps) {
+  const { t } = useLanguage();
   const steps: StepDef[] = [
     {
       number: 1,
-      title: "Household & Location",
+      title: t("selfEnum.step.address"),
       shortDesc: "Address & Structure Type",
       icon: <Home className="h-4 w-4" />,
     },
     {
       number: 2,
-      title: "Housing Amenities",
+      title: t("selfEnum.step.household"),
       shortDesc: "Water, Power & Sanitation",
       icon: <Sparkles className="h-4 w-4" />,
     },
@@ -36,13 +38,13 @@ export function FormStepper({ currentStep, onStepClick }: FormStepperProps) {
     },
     {
       number: 4,
-      title: "Member Roster",
+      title: t("selfEnum.step.members"),
       shortDesc: "Resident Head & Family Count",
       icon: <UserCheck className="h-4 w-4" />,
     },
     {
       number: 5,
-      title: "Review & QR Generation",
+      title: t("selfEnum.step.review"),
       shortDesc: "Digital Acknowledgment",
       icon: <ShieldCheck className="h-4 w-4" />,
     },

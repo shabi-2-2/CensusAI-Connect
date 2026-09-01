@@ -10,6 +10,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateScheduleExtraction } from "@/lib/gemini";
 import { ScheduleExtractionResult, ScheduleQueryIntent } from "@/types/schedule";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rateLimit";
+import { sanitizeInput } from "@/lib/validators";
 
 const MAX_QUERY_LENGTH = 500;
 
@@ -24,6 +26,24 @@ const VALID_INTENTS: ScheduleQueryIntent[] = [
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Rate limiting check
+    const clientId = getClientIdentifier(request.headers);
+    const rateLimit = checkRateLimit(clientId, { maxRequests: 30, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many schedule queries. Please wait a moment before searching again.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     let body: unknown;
     try {
       body = await request.json();
@@ -43,6 +63,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const sanitizedQuery = sanitizeInput(query, MAX_QUERY_LENGTH);
 
     if (query.length > MAX_QUERY_LENGTH) {
       return NextResponse.json(

@@ -31,8 +31,13 @@ export function InsightFilters({
   const handleStateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newState = e.target.value;
     onStateChange(newState);
-    onDistrictChange("All Districts");
+
+    // Get new state's districts
+    const match = STATE_DISTRICTS_DATA.find((item) => item.state === newState);
+    const districts = match ? match.districts : ["All Districts"];
+    onDistrictChange(districts[0] || "All Districts");
   };
+
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 space-y-6">

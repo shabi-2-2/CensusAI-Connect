@@ -1,9 +1,14 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Lock, Bot, Shield, Globe2, AlertCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export function TrustPrivacyBanner() {
+  const { t } = useLanguage();
+
   const trustPillars = [
     {
       icon: Lock,
@@ -51,10 +56,10 @@ export function TrustPrivacyBanner() {
               <span>Transparent & Citizen-First</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-              Your Privacy Matters
+              {t("home.trust.title")}
             </h2>
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
-              Census data powers national planning and inclusive welfare distribution. We are dedicated to ensuring every citizen understands their rights, legal protections, and how their data is safeguarded.
+              {t("home.trust.subtitle")}
             </p>
           </div>
 
@@ -90,7 +95,7 @@ export function TrustPrivacyBanner() {
             <div className="flex items-start gap-3 text-xs text-slate-400 max-w-xl">
               <AlertCircle className="h-5 w-5 text-brand-saffron-400 shrink-0 mt-0.5" />
               <p>
-                <strong className="text-slate-200">Prototype Notice:</strong> CensusAI Connect is a hackathon proof-of-concept for digital census interactions. It does not collect official census filings or represent an official government agency.
+                <strong className="text-slate-200">Prototype Notice:</strong> {t("footer.disclaimer")}
               </p>
             </div>
 
@@ -98,7 +103,7 @@ export function TrustPrivacyBanner() {
               <Link href="/mythbuster">
                 <Button variant="secondary" size="md" className="bg-slate-800 text-white hover:bg-slate-700 border-slate-700">
                   <Shield className="h-4 w-4 mr-1.5 text-brand-saffron-400" />
-                  Explore Mythbuster
+                  {t("nav.mythbuster")}
                   <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               </Link>
@@ -109,3 +114,4 @@ export function TrustPrivacyBanner() {
     </section>
   );
 }
+

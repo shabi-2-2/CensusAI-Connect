@@ -9,6 +9,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateCensusAIResponse, CensusAIChatRequest } from "@/lib/gemini";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rateLimit";
+import { sanitizeInput } from "@/lib/validators";
 
 /** Maximum characters allowed in a single user message. */
 const MAX_MESSAGE_LENGTH = 2000;
@@ -18,6 +20,24 @@ const MAX_HISTORY_LENGTH = 40;
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Rate limiting check
+    const clientId = getClientIdentifier(request.headers);
+    const rateLimit = checkRateLimit(clientId, { maxRequests: 30, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many requests. Please wait a few seconds before asking again.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     // 1. Parse and validate request body
     let body: unknown;
     try {
@@ -32,13 +52,15 @@ export async function POST(request: NextRequest) {
     const payload = body as Record<string, unknown>;
 
     // 2. Validate required `message` field
-    const message = payload.message;
-    if (!message || typeof message !== "string" || !message.trim()) {
+    const rawMessage = payload.message;
+    if (!rawMessage || typeof rawMessage !== "string" || !rawMessage.trim()) {
       return NextResponse.json(
         { success: false, error: "Message is required and cannot be empty." },
         { status: 400 }
       );
     }
+
+    const message = sanitizeInput(rawMessage, MAX_MESSAGE_LENGTH);
 
     // 3. Enforce message length limit
     if (message.length > MAX_MESSAGE_LENGTH) {

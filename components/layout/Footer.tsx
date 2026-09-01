@@ -1,9 +1,14 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Shield, Sparkles, Globe, Heart, ArrowUpRight } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/data/languagesData";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,13 +24,13 @@ export function Footer() {
                   Census<span className="text-brand-navy-400">AI</span> Connect
                 </span>
                 <p className="text-xs text-slate-400">
-                  India&apos;s Digital Census, Made Simple with AI
+                  {t("nav.platformSubtitle")}
                 </p>
               </div>
             </div>
 
             <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-              A modern, citizen-centric platform prototype designed to make India&apos;s digital census understandable, accessible in 13+ languages, and effortlessly verifiable with AI assistance.
+              {t("footer.tagline")}
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
@@ -55,7 +60,7 @@ export function Footer() {
                   href="/about"
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 group"
                 >
-                  <span>About Phase 1 & 2</span>
+                  <span>{t("nav.about")}</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -64,7 +69,7 @@ export function Footer() {
                   href="/self-enumeration"
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 group"
                 >
-                  <span>Self Enumeration</span>
+                  <span>{t("nav.selfEnumeration")}</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -73,7 +78,7 @@ export function Footer() {
                   href="/schedule"
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 group"
                 >
-                  <span>Check State Schedule</span>
+                  <span>{t("nav.schedule")}</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -82,7 +87,7 @@ export function Footer() {
                   href="/mythbuster"
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 group"
                 >
-                  <span>Mythbuster & Facts</span>
+                  <span>{t("nav.mythbuster")}</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -91,7 +96,7 @@ export function Footer() {
                   href="/data-insights"
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 group"
                 >
-                  <span>Data Insights</span>
+                  <span>{t("nav.dataInsights")}</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -162,7 +167,7 @@ export function Footer() {
             <Shield className="h-4 w-4 text-brand-saffron-400 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold text-slate-200">Prototype & Demonstration Platform: </span>
-              CensusAI Connect is an independent technological demonstration developed for hackathon innovation. This prototype is not an official government portal and does not claim official government affiliation. All sample data and schedules are illustrative.
+              {t("footer.disclaimer")}
             </div>
           </div>
         </div>
@@ -170,7 +175,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <div>
-            © {new Date().getFullYear()} CensusAI Connect. Built for India&apos;s Digital Future.
+            {t("footer.copyright")}
           </div>
           <div className="flex items-center gap-1 text-slate-400">
             <span>Empowering every citizen with transparent data & AI</span>
@@ -180,3 +185,4 @@ export function Footer() {
     </footer>
   );
 }
+

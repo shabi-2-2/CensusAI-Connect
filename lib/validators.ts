@@ -1,3 +1,9 @@
+/**
+ * lib/validators.ts
+ *
+ * Type-safe runtime validation helpers for AI responses, user inputs, and API payloads.
+ */
+
 import { HouseholdExtraction, HouseholdMember } from "@/types/census";
 
 /**
@@ -7,8 +13,7 @@ import { HouseholdExtraction, HouseholdMember } from "@/types/census";
  * @param rawData The unknown payload to validate
  * @returns A safe, guaranteed HouseholdExtraction object
  */
-export function validateHouseholdExtraction(rawData: any): HouseholdExtraction {
-  // Default safe structure
+export function validateHouseholdExtraction(rawData: unknown): HouseholdExtraction {
   const result: HouseholdExtraction = {
     householdCount: null,
     members: [],
@@ -20,55 +25,53 @@ export function validateHouseholdExtraction(rawData: any): HouseholdExtraction {
     return result;
   }
 
-  // Safely parse householdCount (must be null or a reasonable positive number)
+  const data = rawData as Record<string, unknown>;
+
+  // Safely parse householdCount (must be positive integer, reasonable bound for a single household)
   if (
-    typeof rawData.householdCount === "number" &&
-    rawData.householdCount > 0 &&
-    rawData.householdCount < 100 // Reasonable upper bound for a single household
+    typeof data.householdCount === "number" &&
+    data.householdCount > 0 &&
+    data.householdCount < 100
   ) {
-    result.householdCount = Math.floor(rawData.householdCount);
+    result.householdCount = Math.floor(data.householdCount);
   }
 
   // Safely parse confidence level
-  if (["high", "medium", "low"].includes(rawData.confidence)) {
-    result.confidence = rawData.confidence as "high" | "medium" | "low";
+  if (data.confidence === "high" || data.confidence === "medium" || data.confidence === "low") {
+    result.confidence = data.confidence;
   }
 
   // Safely parse notes
-  if (Array.isArray(rawData.notes)) {
-    result.notes = rawData.notes
-      .filter((n: any) => typeof n === "string" && n.trim().length > 0)
-      .map((n: string) => n.trim());
+  if (Array.isArray(data.notes)) {
+    result.notes = data.notes
+      .filter((n): n is string => typeof n === "string" && n.trim().length > 0)
+      .map((n) => n.trim());
   }
 
   // Safely parse members array
-  if (Array.isArray(rawData.members)) {
-    result.members = rawData.members.reduce((safeMembers: HouseholdMember[], member: any, index: number) => {
-      // Ensure member is an object
+  if (Array.isArray(data.members)) {
+    result.members = data.members.reduce<HouseholdMember[]>((safeMembers, member, index) => {
       if (!member || typeof member !== "object") return safeMembers;
+      const m = member as Record<string, unknown>;
 
-      // Generate a safe ID — Gemini does not produce IDs, so we synthesize one
       const safeId =
-        typeof member.id === "string" && member.id.trim()
-          ? member.id.trim()
+        typeof m.id === "string" && m.id.trim()
+          ? m.id.trim()
           : `ai-member-${index}-${Date.now()}`;
 
-      // Default relationship if missing or invalid
       const safeRelationship =
-        typeof member.relationship === "string" && member.relationship.trim()
-          ? member.relationship.trim()
+        typeof m.relationship === "string" && m.relationship.trim()
+          ? m.relationship.trim()
           : "Unknown";
 
-      // Safely parse age
       let safeAge: number | null = null;
-      if (typeof member.age === "number" && member.age >= 0 && member.age <= 120) {
-        safeAge = Math.floor(member.age);
+      if (typeof m.age === "number" && m.age >= 0 && m.age <= 120) {
+        safeAge = Math.floor(m.age);
       }
 
-      // Safely parse gender
       let safeGender: string | null = null;
-      if (typeof member.gender === "string" && member.gender.trim()) {
-        safeGender = member.gender.trim();
+      if (typeof m.gender === "string" && m.gender.trim()) {
+        safeGender = m.gender.trim();
       }
 
       safeMembers.push({
@@ -83,4 +86,24 @@ export function validateHouseholdExtraction(rawData: any): HouseholdExtraction {
   }
 
   return result;
+}
+
+/**
+ * Sanitizes a string input: trims whitespace and strips unsafe control characters.
+ */
+export function sanitizeInput(input: unknown, maxLength = 2000): string {
+  if (typeof input !== "string") return "";
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
+
+/**
+ * Checks whether an input string contains basic content and meets length requirements.
+ */
+export function isValidQuery(input: unknown, minLength = 1, maxLength = 1000): boolean {
+  if (typeof input !== "string") return false;
+  const trimmed = input.trim();
+  return trimmed.length >= minLength && trimmed.length <= maxLength;
 }

@@ -79,8 +79,9 @@ export function HouseholdAIInput({ onExtractionSuccess }: HouseholdAIInputProps)
       }
 
       onExtractionSuccess(data.data as HouseholdExtraction);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +114,7 @@ export function HouseholdAIInput({ onExtractionSuccess }: HouseholdAIInputProps)
             }}
             disabled={isLoading}
             placeholder='Example: "There are four people in my family: me, my wife, and two daughters."'
+            aria-label="Describe your household naturally in your own words"
             className="w-full min-h-[100px] p-3 pr-14 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-saffron-500 focus:border-transparent resize-y disabled:opacity-50 disabled:bg-slate-50"
             maxLength={1000}
           />

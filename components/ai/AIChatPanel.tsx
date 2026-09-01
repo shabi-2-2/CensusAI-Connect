@@ -108,13 +108,15 @@ export function AIChatPanel({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "I encountered a temporary issue retrieving census information. Please try asking again.";
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-err-${Date.now()}`,
           role: "assistant",
-          content: err?.message || "I encountered a temporary issue retrieving census information. Please try asking again.",
+          content: errorMessage,
           timestamp: new Date(),
         },
       ]);
@@ -203,7 +205,11 @@ export function AIChatPanel({
       </div>
 
       {/* Messages List */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/60 max-h-[440px]">
+      <div
+        className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/60 max-h-[440px]"
+        aria-live="polite"
+        aria-relevant="additions"
+      >
         {messages.map((msg) => {
           const isUser = msg.role === "user";
           return (
@@ -324,6 +330,7 @@ export function AIChatPanel({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Ask anything about India's Census..."
+          aria-label="Ask anything about India's Census"
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-brand-navy-600 focus:outline-none transition-all"
         />
         <Button

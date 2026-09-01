@@ -8,13 +8,32 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateHouseholdExtraction } from "@/lib/gemini";
-import { validateHouseholdExtraction } from "@/lib/validators";
+import { validateHouseholdExtraction, sanitizeInput } from "@/lib/validators";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rateLimit";
 
 /** Maximum characters allowed in a single extraction input. */
 const MAX_EXTRACTION_LENGTH = 1000;
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Rate limiting check
+    const clientId = getClientIdentifier(request.headers);
+    const rateLimit = checkRateLimit(clientId, { maxRequests: 25, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many extraction requests. Please wait a few seconds before trying again.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil(rateLimit.resetMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     // 1. Parse and validate request body
     let body: unknown;
     try {
@@ -29,13 +48,15 @@ export async function POST(request: NextRequest) {
     const payload = body as Record<string, unknown>;
 
     // 2. Validate required `text` field
-    const text = payload.text;
-    if (!text || typeof text !== "string" || !text.trim()) {
+    const rawText = payload.text;
+    if (!rawText || typeof rawText !== "string" || !rawText.trim()) {
       return NextResponse.json(
         { success: false, error: "Text is required and cannot be empty." },
         { status: 400 }
       );
     }
+
+    const text = sanitizeInput(rawText, MAX_EXTRACTION_LENGTH);
 
     // 3. Enforce message length limit
     if (text.length > MAX_EXTRACTION_LENGTH) {

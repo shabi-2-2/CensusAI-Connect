@@ -4,8 +4,10 @@ import * as React from "react";
 import { ScheduleChecker } from "@/components/schedule/ScheduleChecker";
 import { AIAssistantFloating } from "@/components/ai/AIAssistantFloating";
 import { Calendar, Sparkles, Clock, Shield } from "lucide-react";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 export default function SchedulePage() {
+  const { t } = useLanguage();
   const [isAIOpen, setIsAIOpen] = React.useState(false);
   const [aiPrompt, setAiPrompt] = React.useState<string | undefined>(undefined);
 
@@ -26,10 +28,10 @@ export default function SchedulePage() {
                 <span>State & UT Census Timelines</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Census Schedule Checker
+                {t("schedule.title")}
               </h1>
               <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
-                Lookup Phase 1 (Houselisting) and Phase 2 (Population) enumeration dates and digital self-enumeration windows for your state.
+                {t("schedule.subtitle")}
               </p>
             </div>
 

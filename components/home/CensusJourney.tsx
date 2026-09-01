@@ -13,18 +13,21 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface CensusJourneyProps {
   onOpenAI: (prompt?: string) => void;
 }
 
 export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
+  const { t } = useLanguage();
+
   const steps = [
     {
       stepNumber: "01",
-      title: "Understand",
+      title: t("home.journey.step1.title"),
       subtitle: "Phases 1 & 2",
-      description: "Learn what questions are asked in Houselisting vs Population Enumeration.",
+      description: t("home.journey.step1.desc"),
       icon: BookOpen,
       href: "/about",
       color: "bg-blue-600 text-white",
@@ -32,9 +35,9 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
     },
     {
       stepNumber: "02",
-      title: "Check Schedule",
+      title: t("home.journey.step1.title"),
       subtitle: "State Windows",
-      description: "Find exact self-enumeration and field enumerator dates for your state.",
+      description: t("home.journey.step1.desc"),
       icon: CalendarDays,
       href: "/schedule",
       color: "bg-amber-600 text-white",
@@ -42,9 +45,9 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
     },
     {
       stepNumber: "03",
-      title: "Self Enumerate",
+      title: t("home.journey.step3.title"),
       subtitle: "10-Minute Form",
-      description: "Fill housing and household info online from the comfort of your home.",
+      description: t("home.journey.step3.desc"),
       icon: FileCheck2,
       href: "/self-enumeration",
       color: "bg-emerald-600 text-white",
@@ -52,9 +55,9 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
     },
     {
       stepNumber: "04",
-      title: "Get AI Help",
+      title: t("home.features.aiAssistant.title"),
       subtitle: "Instant Answers",
-      description: "Ask CensusAI in your regional language if you need clarification on any field.",
+      description: t("home.features.aiAssistant.desc"),
       icon: Bot,
       onClick: () => onOpenAI("Help me understand what details I need for self-enumeration."),
       color: "bg-purple-600 text-white",
@@ -62,9 +65,9 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
     },
     {
       stepNumber: "05",
-      title: "Verify Info",
+      title: t("home.journey.step4.title"),
       subtitle: "Debunk Myths",
-      description: "Verify privacy legalities under Section 15 and debunk common rumors.",
+      description: t("home.journey.step4.desc"),
       icon: ShieldCheck,
       href: "/mythbuster",
       color: "bg-rose-600 text-white",
@@ -72,9 +75,9 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
     },
     {
       stepNumber: "06",
-      title: "Explore Insights",
+      title: t("home.features.dataInsights.title"),
       subtitle: "Open Trends",
-      description: "Discover national demographics, literacy growth, and housing development data.",
+      description: t("home.features.dataInsights.desc"),
       icon: LineChart,
       href: "/data-insights",
       color: "bg-brand-navy-900 text-white",
@@ -93,10 +96,10 @@ export function CensusJourney({ onOpenAI }: CensusJourneyProps) {
             <span>Interactive Roadmap</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Your Seamless Census Journey
+            {t("home.journey.title")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
-            Follow these six clear steps to complete and verify your census participation with confidence.
+            {t("home.journey.subtitle")}
           </p>
         </div>
 

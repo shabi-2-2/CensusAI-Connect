@@ -24,6 +24,7 @@ import { STATE_SCHEDULES } from "@/data/scheduleData";
 import { HouseholdAIInput } from "@/components/self-enumeration/HouseholdAIInput";
 import { HouseholdReview } from "@/components/self-enumeration/HouseholdReview";
 import { HouseholdExtraction, HouseholdMember } from "@/types/census";
+import { useLanguage } from "@/components/layout/LanguageProvider";
 
 interface HouseholdFormPreviewProps {
   currentStep: number;
@@ -36,6 +37,7 @@ export function HouseholdFormPreview({
   onStepChange,
   onOpenAI,
 }: HouseholdFormPreviewProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = React.useState({
     state: "delhi",
     district: "New Delhi",
@@ -105,11 +107,11 @@ export function HouseholdFormPreview({
                 </span>
               </div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1.5">
-                {currentStep === 1 && "Household & Location Details"}
-                {currentStep === 2 && "Housing Amenities & Facilities"}
+                {currentStep === 1 && t("selfEnum.step.address")}
+                {currentStep === 2 && t("selfEnum.step.household")}
                 {currentStep === 3 && "Household Assets & Connectivity"}
-                {currentStep === 4 && "Member Summary & Roster"}
-                {currentStep === 5 && "Review & QR Code Generation"}
+                {currentStep === 4 && t("selfEnum.step.members")}
+                {currentStep === 5 && t("selfEnum.step.review")}
               </h2>
             </div>
 
@@ -237,11 +239,11 @@ export function HouseholdFormPreview({
                   className="opacity-50"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+                  {t("selfEnum.back")}
                 </Button>
 
                 <Button type="submit" variant="saffron" size="lg" className="shadow-md">
-                  Continue to Step 2
+                  {t("selfEnum.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -316,7 +318,7 @@ export function HouseholdFormPreview({
                   onClick={() => onStepChange(1)}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Step 1
+                  {t("selfEnum.back")}
                 </Button>
                 <Button
                   type="button"
@@ -324,7 +326,7 @@ export function HouseholdFormPreview({
                   size="lg"
                   onClick={() => onStepChange(3)}
                 >
-                  Continue to Step 3
+                  {t("selfEnum.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -355,7 +357,7 @@ export function HouseholdFormPreview({
                   onClick={() => onStepChange(currentStep - 1)}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+                  {t("selfEnum.back")}
                 </Button>
                 <Button
                   type="button"
@@ -363,7 +365,7 @@ export function HouseholdFormPreview({
                   size="lg"
                   onClick={() => onStepChange(currentStep + 1)}
                 >
-                  Continue
+                  {t("selfEnum.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -515,7 +517,7 @@ export function HouseholdFormPreview({
                   onClick={() => onStepChange(currentStep - 1)}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+                  {t("selfEnum.back")}
                 </Button>
                 <Button
                   type="button"
@@ -523,7 +525,7 @@ export function HouseholdFormPreview({
                   size="lg"
                   onClick={() => onStepChange(currentStep + 1)}
                 >
-                  Continue
+                  {t("selfEnum.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -554,7 +556,7 @@ export function HouseholdFormPreview({
                   onClick={() => onStepChange(currentStep - 1)}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+                  {t("selfEnum.back")}
                 </Button>
                 <Button
                   type="button"
@@ -562,7 +564,7 @@ export function HouseholdFormPreview({
                   size="lg"
                   onClick={handleContinue}
                 >
-                  Submit Demo Form
+                  {t("selfEnum.submit")}
                   <CheckCircle2 className="h-4 w-4 ml-2" />
                 </Button>
               </div>
