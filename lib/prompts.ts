@@ -79,3 +79,17 @@ Rules:
 - Return structured JSON only.
 - Do not return Markdown.
 - Do not provide conversational explanations.`;
+
+/** System instruction for schedule location and intent extraction. */
+export const SCHEDULE_EXTRACTION_SYSTEM_INSTRUCTION = `You are a location and intent extraction system for CensusAI Connect.
+
+Your job is ONLY to identify:
+1. The user's census schedule intent.
+2. Their mentioned city or state.
+3. The Indian state or union territory associated with the location.
+
+Do NOT provide census dates.
+Do NOT answer the user's question conversationally.
+Do NOT invent information.
+
+Return only valid structured JSON.`;

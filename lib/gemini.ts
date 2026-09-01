@@ -11,6 +11,7 @@ import { GoogleGenAI, Content } from "@google/genai";
 import {
   CENSUSAI_SYSTEM_INSTRUCTION,
   EXTRACTION_SYSTEM_INSTRUCTION,
+  SCHEDULE_EXTRACTION_SYSTEM_INSTRUCTION,
   buildContextPrefix,
   buildLanguageInstruction,
 } from "@/lib/prompts";
@@ -133,3 +134,30 @@ export async function generateHouseholdExtraction(
 
   return responseText;
 }
+
+/**
+ * Extracts location and intent for schedule queries from natural language text.
+ * Gemini NEVER generates census dates; it only extracts location & intent.
+ * Runs server-side only.
+ */
+export async function generateScheduleExtraction(text: string): Promise<string> {
+  const client = getClient();
+  const modelName = getModelName();
+
+  const response = await client.models.generateContent({
+    model: modelName,
+    contents: text,
+    config: {
+      systemInstruction: SCHEDULE_EXTRACTION_SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const responseText = response.text ?? "";
+  if (!responseText.trim()) {
+    throw new Error("Empty response received from Gemini.");
+  }
+
+  return responseText;
+}
+

@@ -1,13 +1,18 @@
-export type VerdictType = "false" | "partially_true" | "verified_true";
+export type VerdictType = "false" | "misleading" | "needs_verification";
 
-export interface MythItem {
+export type MythCategory = "privacy" | "fraud" | "data" | "enumeration" | "eligibility";
+
+export interface MythEntry {
   id: string;
-  claim: string;
-  category: "Privacy" | "Legal" | "Process" | "Eligibility" | "Documents";
+  myth: string;
   verdict: VerdictType;
-  shortSummary: string;
-  fullExplanation: string;
-  keyTakeaway: string;
-  sourceReference: string;
-  tags: string[];
+  explanation: string;
+  safetyGuidance?: string;
+  category: MythCategory;
+  keywords: string[];
+  sourceLabel: string;
 }
+
+// Backward compatibility alias for any existing imports
+export type MythItem = MythEntry;
+

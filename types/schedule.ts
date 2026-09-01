@@ -24,3 +24,19 @@ export interface CityMapping {
   stateId: string;
   stateName: string;
 }
+
+export type ScheduleQueryIntent =
+  | "phase1_dates"
+  | "phase2_dates"
+  | "self_enumeration_date"
+  | "schedule_overview"
+  | "missed_deadline"
+  | "general_schedule_question";
+
+export interface ScheduleExtractionResult {
+  intent: ScheduleQueryIntent;
+  location?: string | null;
+  state?: string | null;
+  confidence?: "high" | "medium" | "low";
+}
+
