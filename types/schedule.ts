@@ -3,20 +3,24 @@ export type PhaseStatus = "active" | "upcoming" | "completed";
 export interface StateCensusSchedule {
   id: string;
   stateName: string;
-  zone: "North" | "South" | "East" | "West" | "Central" | "North-East" | "UT";
-  phase1: {
-    startDate: string;
-    endDate: string;
-    status: PhaseStatus;
-    selfEnumerationWindow: string;
-  };
-  phase2: {
-    startDate: string;
-    endDate: string;
-    status: PhaseStatus;
-    selfEnumerationWindow: string;
-  };
-  helpline: string;
-  nodalOffice: string;
+  region: "North" | "South" | "East" | "West" | "Central" | "North-East" | "UT";
+  // Standardized ISO date fields
+  phase1Start: string; // e.g. "2026-04-01"
+  phase1End: string;   // e.g. "2026-05-15"
+  selfEnumerationStart: string; // e.g. "2026-04-01"
+  selfEnumerationEnd: string;   // e.g. "2026-04-20"
+  phase2Start: string; // e.g. "2027-02-09"
+  phase2End: string;   // e.g. "2027-02-28"
+  status: PhaseStatus;
+  
+  // Optional legacy / display fields
+  helpline?: string;
+  nodalOffice?: string;
   notes?: string;
+}
+
+export interface CityMapping {
+  cityName: string;
+  stateId: string;
+  stateName: string;
 }

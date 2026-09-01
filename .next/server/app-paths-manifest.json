@@ -1,6 +1,0 @@
-{
-  "/api/ai/chat/route": "app/api/ai/chat/route.js",
-  "/data-insights/page": "app/data-insights/page.js",
-  "/self-enumeration/page": "app/self-enumeration/page.js",
-  "/page": "app/page.js"
-}
