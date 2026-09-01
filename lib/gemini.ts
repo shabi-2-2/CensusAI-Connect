@@ -10,6 +10,7 @@
 import { GoogleGenAI, Content } from "@google/genai";
 import {
   CENSUSAI_SYSTEM_INSTRUCTION,
+  EXTRACTION_SYSTEM_INSTRUCTION,
   buildContextPrefix,
   buildLanguageInstruction,
 } from "@/lib/prompts";
@@ -98,4 +99,37 @@ export async function generateCensusAIResponse(
   }
 
   return { text };
+}
+
+/**
+ * Extracts structured household data from natural language text.
+ * Runs server-side only.
+ */
+export async function generateHouseholdExtraction(
+  text: string,
+  language?: string
+): Promise<string> {
+  const client = getClient();
+  const modelName = getModelName();
+
+  let instruction = EXTRACTION_SYSTEM_INSTRUCTION;
+  if (language) {
+    instruction += `\n\nNote: The user's input may be in ${language}. Handle it appropriately.`;
+  }
+
+  const response = await client.models.generateContent({
+    model: modelName,
+    contents: text,
+    config: {
+      systemInstruction: instruction,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const responseText = response.text ?? "";
+  if (!responseText.trim()) {
+    throw new Error("Empty response received from Gemini.");
+  }
+
+  return responseText;
 }
