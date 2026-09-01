@@ -1,0 +1,8 @@
+{
+  "/page": "app/page.js",
+  "/self-enumeration/page": "app/self-enumeration/page.js",
+  "/about/page": "app/about/page.js",
+  "/schedule/page": "app/schedule/page.js",
+  "/mythbuster/page": "app/mythbuster/page.js",
+  "/data-insights/page": "app/data-insights/page.js"
+}
